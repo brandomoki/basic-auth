@@ -4,7 +4,8 @@ const { start, sequelizeDatabase } = require('./src/server');
 
 sequelizeDatabase.sync()
   .then(() => {
-    console.log('server up');
+    console.log('Successful Connection!');
     start();
   })
-  .catch((e) => console.error(e));
+  .catch(err => console.error(err));
+

@@ -1,6 +1,7 @@
 'use strict';
 
 // 3rd Party Resources
+require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcrypt');
 const base64 = require('base-64');
@@ -101,4 +102,4 @@ function start(){
   app.listen(PORT, () => console.log(`listening on port ${PORT}`));
 }
 
-module.exports = { app, start };
+module.exports = { app, start, sequelizeDatabase };
