@@ -33,18 +33,61 @@ const Users = sequelizeDatabase.define('User', {
   password: {
     type: DataTypes.STRING,
     allowNull: false,
-  }
+  },
 });
 
-// Signup Route -- create a new user
-// Two ways to test this route with httpie
-// echo '{"username":"john","password":"foo"}' | http post :3000/signup
-// http post :3000/signup username=john password=foo
 
 
 
 
-app.post('/signup', async (req, res, next) => {
+async function basicAuth(req, res, next) {
+  let { authorization } = req.headers;
+  console.log('authorization::::', authorization);
+  // confirm request header has an "authorization" property
+  if (!authorization) {
+    res.status(401).send('Not Authorized');
+  } else {
+    // Parse the basic auth string
+    let authString = authorization.split(' ')[1];
+    console.log('authStr:', authString); // dGVzdDpwYXNz
+
+    let decodedAuthString = base64.decode(authString);
+    console.log('decodedAuthString:', decodedAuthString); // test:pass
+
+    let [ username, password ] = decodedAuthString.split(':');
+    console.log('username:', username);
+    console.log('password:', password);
+
+    // find the user in the database
+    let user = await Users.findOne({where: { username }});
+    console.log('user:', user);
+    // IF the user exists (in database after a signup request)...
+    if(user){
+      // compare  password from database to the signin password
+      // note: password could also be sent from a logged in client
+      let validUser = await bcrypt.compare(password, user.password);
+      console.log('validUser', validUser);
+      // if valid user DOES exist...
+      if(validUser){
+        // attach user to the request object
+        req.user = user;
+        // basicAuth middleware is done, pass request to next middleware
+        next();
+        // if valid user DOES NOt exist...
+      } else {
+        // send a "Not Authorized" error to express middleware
+        next('Not Authorized');
+      }
+    }
+
+  }
+}
+
+
+
+
+
+app.post('/signup', basicAuth, async (req, res, next) => {
 
   try {
     let { username, password } = req.body;
@@ -61,17 +104,14 @@ app.post('/signup', async (req, res, next) => {
   }
 });
 
-//     req.body.password = await bcrypt.hash(req.body.password, 5);
-//     const record = await Users.create(req.body);
-//     res.status(200).json(record);
-//   } catch (e) { res.status(403).send('Error Creating User'); }
-// });
+
 
 
 // Signin Route -- login with username and password
 // test with httpie
 // http post :3000/signin -a john:foo
 app.post('/signin', async (req, res) => {
+  res.status(200).send(req.user);
 
   /*
     req.headers.authorization is : "Basic sdkjdsljd="
