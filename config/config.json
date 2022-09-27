@@ -2,7 +2,7 @@
   "development": {
     "username": "brandomoki",
     "password": null,
-    "database": "api-app",
+    "database": "basic-auth",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
