@@ -40,14 +40,32 @@ const Users = sequelizeDatabase.define('User', {
 // Two ways to test this route with httpie
 // echo '{"username":"john","password":"foo"}' | http post :3000/signup
 // http post :3000/signup username=john password=foo
-app.post('/signup', async (req, res) => {
+
+
+
+
+app.post('/signup', async (req, res, next) => {
 
   try {
-    req.body.password = await bcrypt.hash(req.body.password, 10);
-    const record = await Users.create(req.body);
-    res.status(200).json(record);
-  } catch (e) { res.status(403).send('Error Creating User'); }
+    let { username, password } = req.body;
+    let encryptedPassword = await bcrypt.hash(password, 5);
+
+    let user = await Users.create({
+      username,
+      password: encryptedPassword,
+    });
+
+    res.status(201).send(user);
+  } catch (err) {
+    next('signup error occurred');
+  }
 });
+
+//     req.body.password = await bcrypt.hash(req.body.password, 5);
+//     const record = await Users.create(req.body);
+//     res.status(200).json(record);
+//   } catch (e) { res.status(403).send('Error Creating User'); }
+// });
 
 
 // Signin Route -- login with username and password
